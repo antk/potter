@@ -1,4 +1,5 @@
-MC.potter = {
+var hpg = {};
+hpg = {
   score: 0,
   clickCount: 0,
   escapeCount: 0,
@@ -8,20 +9,21 @@ MC.potter = {
   moveSpeed: 5,
   transitionDurationFactor: 0,
   init: function() {
-    MC.potter.createCss();
+    hpg.createCss();
     count = 0;
     var elem = '<div id="contra" class="contra-e"></div>';
     $('body').append(elem);
-    $('#contra').css({'width':'25px', 'height':'25px', 'background':'transparent', 'position':'absolute', 'bottom':0, 'left':0});
+    $('#contra').css({'width':'25px', 'height':'25px', 'background':'transparent', 'position':'absolute', 'top':($(window).height()+$(window).scrollTop()-25) + 'px', 'left':0, 'border':'1px solid red'});
     $('#contra').click(function() {
-      var c = ++MC.potter.clickCount;
+      var c = ++hpg.clickCount;
       if(c===5) {
 
         $('body').append('<div class="potter-overlay"></div>');
-        $('body').append('<a id="potter-start" href="javascript:void(0)">start</a>');
-        $('body').append('<div id="potter-score-container" class="potter-hud-info">Score:<span id="potter-score">0</span>');
-        $('body').append('<div id="potter-escaped-container" class="potter-hud-info">Escaped:<span id="potter-escaped">0</span>');
-        $('body').append('<div id="game-over"></div>');
+        $('body').append('<div id="potter-container"></div>"');
+        $('#potter-container').append('<a id="potter-start" href="javascript:void(0)">start</a>');
+        $('#potter-container').append('<div id="potter-score-container" class="potter-hud-info">Score:<span id="potter-score">0</span>');
+        $('#potter-container').append('<div id="potter-escaped-container" class="potter-hud-info">Escaped:<span id="potter-escaped">0</span>');
+        $('#potter-container').append('<div id="game-over"></div>');
         $('body').css({'overflow':'hidden'});
 
         $('#potter-start').click(function() {
@@ -29,14 +31,14 @@ MC.potter = {
           $('.d').remove();
           $('#potter-score').html('0');
           $('#potter-escaped').html('0');
-          MC.potter.gameOver = false;
-          MC.potter.createInterval = setInterval(function() {
-            MC.potter.createAndMoveElement();
+          hpg.gameOver = false;
+          hpg.createInterval = setInterval(function() {
+            hpg.createAndMoveElement();
           }, 800);
 
-          MC.potter.speedIncreaseInterval = setInterval(function() {
-            MC.potter.transitionDurationFactor += 0.15;
-            console.log(MC.potter.transitionDurationFactor);
+          hpg.speedIncreaseInterval = setInterval(function() {
+            hpg.transitionDurationFactor += 0.15;
+            console.log(hpg.transitionDurationFactor);
           }, 1000);
         });
       }
@@ -46,8 +48,9 @@ MC.potter = {
     var style = document.createElement('style');
     var head = $('head');
     var css = '';
-    css += '.potter-overlay { text-align:center; position:absolute; top:0; left:0; width: ' + $(window).width() + 'px; height: ' + $(window).height() + 'px; z-index:999; background:#fff; opacity: 0.8; }';
+    css += '.potter-overlay { text-align:center; position:absolute; top:0; left:0; width: ' + $(document.body).width() + 'px; height: ' + $(document.body).height() + 'px; z-index:999; background:#fff; opacity: 0.8; }';
     css += '.potter-hud-info { font-weight:bold; font-size:2em; position: absolute; top: 10px; z-index: 1001;}';
+    css += '#potter-container { position: absolute; left: 0; width: ' + $(window).width() + 'px; height: ' + $(window).height() + 'px; top: ' + $(window).scrollTop() + 'px;}';
     css += '#potter-score-container { left: 10px; text-shadow: 1px 1px 10px yellow; }';
     css += '#potter-escaped-container { right: 10px; text-shadow: 1px 1px 10px red; }';
     css += '#potter-start { padding: 10px 0; width:100px; text-align:center; border: 2px solid yellow; background: #000; color: yellow; display: block; position:absolute; top: 50%; left: 50%; z-index: 1001; }';
@@ -69,10 +72,10 @@ MC.potter = {
     return Math.random() < 0.5 ? d1 : d2;
   },
   createAndMoveElement: function() {
-    var leftMax = $(window).width();
-    var topMax = $(window).height();
-    var left = MC.potter.randomIntFromInterval(50, leftMax - 50);
-    var top = MC.potter.randomIntFromInterval(50, topMax - 50);
+    var leftMax = $('#potter-container').width();
+    var topMax = $('#potter-container').height();
+    var left = hpg.randomIntFromInterval(50, leftMax - 50);
+    var top = hpg.randomIntFromInterval(50, topMax - 50) + $(window).scrollTop();
     var d = document.createElement('div');
     var direction = Math.random() < 0.5 ? -1 : 1;
     if(direction == 1) {
@@ -80,35 +83,35 @@ MC.potter = {
     }
     $('body').append(d);
     $(d).addClass('d');
-    $(d).css({'top':top+'px', 'left':left+'px', 'background': 'url(' + MC.potter.getImage() + ')'});
+    $(d).css({'top':top+'px', 'left':left+'px', 'background': 'url(' + hpg.getImage() + ')'});
     $(d).bind("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function(e) {
       // Do something when the transition ends
       // console.log('element offset: ' + e.target.offsetLeft);
       var xMax = $(window).width()*.99;
       // console.log('x max: ' + xMax);
-      if (!MC.potter.gameOver && (e.target.offsetLeft >= xMax || e.target.offsetLeft < 0)) {
+      if (!hpg.gameOver && (e.target.offsetLeft >= xMax || e.target.offsetLeft < 0)) {
         e.target.style.display = 'none';
-        MC.potter.escapeCount++;
-        $('#potter-escaped').html(MC.potter.escapeCount);
-        if(MC.potter.escapeCount == 3 && !MC.potter.gameOver) {
+        hpg.escapeCount++;
+        $('#potter-escaped').html(hpg.escapeCount);
+        if(hpg.escapeCount == 3 && !hpg.gameOver) {
           console.log('game over');
           $('#potter-start').html('Try Again');
           $('#potter-start').css({'display':'block'});
-          clearInterval(MC.potter.createInterval);
-          clearInterval(MC.potter.speedIncreaseInterval);
-          MC.potter.escapeCount = 0;
-          MC.potter.score = 0;
-          MC.potter.gameOver = true;
-          MC.potter.createInterval = null;
-          MC.potter.speedIncreaseInterval = null;
-          MC.potter.moveSpeed = 5;
-          MC.potter.transitionDurationFactor = 0;
+          clearInterval(hpg.createInterval);
+          clearInterval(hpg.speedIncreaseInterval);
+          hpg.escapeCount = 0;
+          hpg.score = 0;
+          hpg.gameOver = true;
+          hpg.createInterval = null;
+          hpg.speedIncreaseInterval = null;
+          hpg.moveSpeed = 5;
+          hpg.transitionDurationFactor = 0;
         }
       }
     });
 
     $(d).one('click', function(e) {
-      if(!MC.potter.gameOver) {
+      if(!hpg.gameOver) {
         // $(d).removeClass('appear');
         $(d)[0].style.left = $(d).offset().left + 'px';
         $(d)[0].style.transition = '';
@@ -121,8 +124,8 @@ MC.potter = {
         setTimeout(function() {
           $(d).remove();
         }, 600);
-        MC.potter.score++;
-        $('#potter-score').html(MC.potter.score);
+        hpg.score++;
+        $('#potter-score').html(hpg.score);
       }
     });
 
@@ -136,19 +139,11 @@ MC.potter = {
 
     // move it
     setTimeout(function() {
-      // var moveSpeed = MC.potter.randomIntFromInterval(3, 5);
-      var moveSpeed = MC.potter.moveSpeed - MC.potter.transitionDurationFactor;
-      console.log('move: ' + moveSpeed);
-      // $(d).addClass('moveRight');
-      // $(d)[0].style.transform = 'scale(100)';
+      var moveSpeed = hpg.moveSpeed - hpg.transitionDurationFactor;
       $(d)[0].style.width = '100px';
       $(d)[0].style.height = '117px';
-      // $(d)[0].style.left = ('99' * direction) + '%';
       $(d)[0].style.left = direction > 0 ? ($(window).width()*.99) + 'px' : '-100px';
-      $(d)[0].style.transition = 'all ' + (MC.potter.moveSpeed-MC.potter.transitionDurationFactor) + 's ease-in';
+      $(d)[0].style.transition = 'all ' + (hpg.moveSpeed-hpg.transitionDurationFactor) + 's ease-in';
     }, 1500);
-    // setTimeout(function() {
-    //  $(d).addClass('moveLeft');
-    // }, 6000);
   }
 }
